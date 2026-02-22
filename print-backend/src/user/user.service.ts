@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import mssql from 'mssql';
 import { DATABASE_POOL } from '../db/db.provider';
 import { User } from './user.schema';
-import { TRPCError } from 'node_modules/@trpc/server/dist/unstable-core-do-not-import.mjs';
+import { TRPCError } from '@trpc/server';
 
 @Injectable()
 export class UserService {

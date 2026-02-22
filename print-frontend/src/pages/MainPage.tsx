@@ -2,6 +2,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { Label } from "../components/ui/label";
 import { useForm } from "@tanstack/react-form";
 import { useUser } from "@/hooks/use-user";
+import { useState } from "react"
 import {
   Card,
   CardContent,
@@ -9,6 +10,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "../components/ui/combo-box"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "../components/ui/dialog"
+import { Input } from "../components/ui/input"
 import { useEffect } from "react";
 import {
   Field,
@@ -38,7 +55,13 @@ const formSchema = z.object({
   FOPAL: z.string().min(3, "FOPAL must be at least 3 characters").nullable(),
 });
 
-export function UserPage() {
+const initialDepartments = [
+  "CSSE",
+  "Add Department",
+] as const
+
+
+export function MainPage() {
   // Assume user is authenticated for now, will implement auth logic later
   const { auth } = useAuth();
   if (!auth || !auth.id) {
@@ -109,7 +132,6 @@ export function UserPage() {
 
   useEffect(() => {
     if (!userQuery.data) return;
-    console.log("Updating user info,", userQuery.data);
     form.reset({
       ...userQuery.data,
       department: departmentQuery.isSuccess
@@ -125,19 +147,53 @@ export function UserPage() {
     form,
   ]);
 
-  // useEffect(() => {
-  //   if (!departmentQuery.data) return;
-  //   console.log("updating department value:", departmentQuery.data);
-  //   console.log(form.state.values);
-  //   form.setFieldValue("department", departmentQuery.data.name ?? "");
-  //   form.setFieldValue("FOPAL", departmentQuery.data.FOPAL ?? "");
-  // }, [departmentQuery.isSuccess, departmentQuery.data, form]);
+  useEffect(() => {
+    if (!departmentQuery.data) return;
+    console.log("updating department value:", departmentQuery.data);
+    console.log(form.state.values);
+    form.setFieldValue("department", departmentQuery.data.name ?? "");
+    form.setFieldValue("FOPAL", departmentQuery.data.FOPAL ?? "");
+  }, [departmentQuery.isSuccess, departmentQuery.data, form]);
+
+  const [departments, setDepartments] = useState<string[]>([...initialDepartments])
+
+  const [selectedDepartment, setSelectedDepartment] = useState<string>("")
+  const [addDeptOpen, setAddDeptOpen] = useState(false)
+
+  const [newDeptName, setNewDeptName] = useState("")
+  const [newDeptFopal, setNewDeptFopal] = useState("")
+
+  const handleDepartmentSelect = (value: string | null) => {
+    if (!value) return
+
+    if (value === "Add Department") {
+      setAddDeptOpen(true)
+      return
+    }
+
+    form.setFieldValue("department", value)
+  }
+
+  const handleAddDepartment = () => {
+    if (!newDeptName || !newDeptFopal) return
+
+    setDepartments((prev) => [
+      ...prev.filter((d) => d !== "Add Department"),
+      newDeptName,
+      "Add Department",
+    ])
+
+    setSelectedDepartment(newDeptName)
+    setNewDeptName("")
+    setNewDeptFopal("")
+    setAddDeptOpen(false)
+  }
 
   return (
     <div className="flex h-full flex-col justify-center items-center">
       <Card className="w-full max-w-md gap-2">
         <CardHeader>
-          <CardTitle className="text-xl">Update User Info</CardTitle>
+          <CardTitle className="text-xl">New Print Order</CardTitle>
         </CardHeader>
         <CardContent>
           <form
@@ -148,6 +204,51 @@ export function UserPage() {
             }}
           >
             <FieldGroup className="gap-2">
+              <form.Field
+                name="department"
+                children={(field) => (
+                  <div className="flex flex-col gap-1">
+                    <FieldLabel>Default Department</FieldLabel>
+
+                    <Combobox
+                      items={departments}
+                      value={field.state.value ?? ""}
+                      onValueChange={handleDepartmentSelect}
+                    >
+                      <ComboboxInput placeholder="Select department" />
+                      <ComboboxContent>
+                        <ComboboxEmpty>No departments found.</ComboboxEmpty>
+                        <ComboboxList>
+                          {(item) => (
+                            <ComboboxItem key={item} value={item}>
+                              {item}
+                            </ComboboxItem>
+                          )}
+                        </ComboboxList>
+                      </ComboboxContent>
+                    </Combobox>
+
+                    <FieldError>
+                      {field.state.meta.errors
+                        ?.map((error) =>
+                          typeof error === "string" ? error : error?.message
+                        )
+                        .join(", ")}
+                    </FieldError>
+                  </div>
+                )}
+              />
+              <form.Field
+                name="FOPAL"
+                children={(field) => (
+                  <FormTextField
+                    field={field}
+                    label="Default FOPAL"
+                    placeholder="Enter your default FOPAL"
+                    className="gap-1"
+                  />
+                )}
+              />
               <form.Field
                 name="first"
                 children={(field) => (
@@ -178,7 +279,6 @@ export function UserPage() {
                     label="Email *"
                     placeholder="Enter your email"
                     className="gap-1"
-                    disabled={true}
                   />
                 )}
               />
@@ -189,28 +289,6 @@ export function UserPage() {
                     field={field}
                     label="Phone"
                     placeholder="Enter your phone number"
-                    className="gap-1"
-                  />
-                )}
-              />
-              <form.Field
-                name="department"
-                children={(field) => (
-                  <FormTextField
-                    field={field}
-                    label="Default Department"
-                    placeholder="Enter your default department"
-                    className="gap-1"
-                  />
-                )}
-              />
-              <form.Field
-                name="FOPAL"
-                children={(field) => (
-                  <FormTextField
-                    field={field}
-                    label="Default FOPAL"
-                    placeholder="Enter your default FOPAL"
                     className="gap-1"
                   />
                 )}
@@ -237,6 +315,41 @@ export function UserPage() {
           )}
         </CardFooter>
       </Card>
+      <Dialog open={addDeptOpen} onOpenChange={setAddDeptOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Department</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <Label>Department Name</Label>
+              <Input
+                value={newDeptName}
+                onChange={(e) => setNewDeptName(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label>Department FOPAL</Label>
+              <Input
+                value={newDeptFopal}
+                onChange={(e) => setNewDeptFopal(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="pt-4">
+            <Button variant="outline" onClick={() => setAddDeptOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddDepartment}>
+              Add Department
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }

@@ -18,10 +18,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Placeholder for authentication logic
     const auth: UserDTO = {
       id: 1,
-      cid: "C123456",
-      first: "Jessica",
-      last: "Smith",
-      email: "smith21@rose-hulman.edu",
+      cid: "kimcs",
+      first: "Chris",
+      last: "Kim",
+      email: "kimcs@rose-hulman.edu",
       phone: "555-123-4567",
       default_did: 1,
     };
