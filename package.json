@@ -1,0 +1,24 @@
+{
+  "name": "@print-shop/root",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "start": "turbo start",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test -- --ci --reporter=jest-junit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.22.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "devDependencies": {
+    "turbo": "^2.8.0"
+  }
+}

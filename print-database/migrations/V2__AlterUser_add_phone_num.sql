@@ -1,0 +1,1 @@
+Alter TABLE dbo.Users Add phone nvarchar(20) NULL;
