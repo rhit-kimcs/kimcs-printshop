@@ -8,5 +8,8 @@ export function useDepartment() {
   const useListDepartments = (uid: number) =>
     useQuery(trpc.department.listDepartments.queryOptions({ uid }));
 
-  return { useGetDepartment, useListDepartments };
+  const useAddDepartment = () =>
+    useMutation(trpc.department.addDepartment.mutationOptions());
+
+  return { useGetDepartment, useListDepartments, useAddDepartment };
 }

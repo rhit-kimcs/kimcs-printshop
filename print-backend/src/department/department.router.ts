@@ -6,6 +6,19 @@ import type { Department } from './department.schema';
 import { Inject } from '@nestjs/common';
 import mssql from 'mssql';
 import { DATABASE_POOL } from '../db/db.provider';
+
+function rowToDepartment(row: Record<string, unknown>): Department {
+  const get = (k: string) => {
+    const key = Object.keys(row).find((kk) => kk.toLowerCase() === k.toLowerCase());
+    return key != null ? row[key] : undefined;
+  };
+  return {
+    id: Number(get('id') ?? 0),
+    name: String(get('name') ?? ''),
+    FOPAL: String(get('FOPAL') ?? ''),
+  };
+}
+
 @Router({ alias: 'department' })
 export class DepartmentRouter {
   constructor(
@@ -25,8 +38,8 @@ export class DepartmentRouter {
       .input('uid', mssql.Int, uid)
       .execute(`dbo.GetDepartment`);
 
-    console.log('result:', result.recordset);
-    return result.recordset[0] as Department;
+    const row = (result.recordset?.[0] ?? {}) as Record<string, unknown>;
+    return rowToDepartment(row);
   }
 
   @Query({
@@ -39,8 +52,8 @@ export class DepartmentRouter {
       .input('uid', mssql.Int, uid)
       .execute(`dbo.ListDepartment`);
 
-    console.log('result:', result.recordset);
-    return result.recordset as Department[];
+    const rows = (result.recordset ?? []) as Array<Record<string, unknown>>;
+    return rows.map((row) => rowToDepartment(row));
   }
 
   @Mutation({
@@ -49,6 +62,38 @@ export class DepartmentRouter {
   })
   createDepartment(@Input() departmentData: Department) {
     return this.departmentService.createDepartment(departmentData);
+  }
+
+  @Mutation({
+    input: z.object({
+      uid: z.number(),
+      name: z.string(),
+      FOPAL: z.string(),
+    }),
+    output: departmentSchema,
+  })
+  async addDepartment(
+    @Input('uid') uid: number,
+    @Input('name') name: string,
+    @Input('FOPAL') FOPAL: string,
+  ) {
+    await this.pool
+      .request()
+      .input('UserID', mssql.Int, uid)
+      .input('DepartmentName', mssql.NVarChar(100), name)
+      .input('FOPAL', mssql.NVarChar(100), FOPAL)
+      .execute(`dbo.AddDepartment`);
+    const list = await this.pool
+      .request()
+      .input('uid', mssql.Int, uid)
+      .execute(`dbo.ListDepartment`);
+    const rows = (list.recordset ?? []) as Array<Record<string, unknown>>;
+    const added = rows.find((r) => {
+      const d = rowToDepartment(r);
+      return d.name === name && d.FOPAL === FOPAL;
+    });
+    if (!added) throw new Error('AddDepartment did not return the new department');
+    return rowToDepartment(added);
   }
 
   @Mutation({

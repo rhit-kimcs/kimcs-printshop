@@ -156,6 +156,15 @@ const appRouter = t.router({
       name: z.string(),
       FOPAL: z.string(),
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    addDepartment: publicProcedure.input(z.object({
+      uid: z.number(),
+      name: z.string(),
+      FOPAL: z.string(),
+    })).output(z.object({
+      id: z.number(),
+      name: z.string(),
+      FOPAL: z.string(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     updateDepartment: publicProcedure.input(z.object({
       id: z.number(),
       data: z.object({
