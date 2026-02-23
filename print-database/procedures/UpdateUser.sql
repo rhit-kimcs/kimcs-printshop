@@ -1,65 +1,46 @@
-/****** Object:  StoredProcedure [dbo].[UpdateUser]    Script Date: 2/6/2026 1:22:44 PM ******/
+USE [PrintShop_Chris]
+GO
+/****** Object:  StoredProcedure [dbo].[UpdateUser]    Script Date: 2/23/2026 3:19:00 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
--- =============================================
--- Author:		Zeen Wang
--- Create date: 02/08/2026
--- Description:	update a user in the database
--- =============================================
-Create or ALTER PROCEDURE [dbo].[UpdateUser] 
-	-- Add the parameters for the stored procedure here
-	@id int,
-	@first nvarchar(100),
-	@last nvarchar(100),
-	@phone nvarchar(20) = NULL,
-	@did int = NULL
+
+ALTER PROC [dbo].[UpdateUser]
+	@uid int, @cid nvarchar(100), @fname nvarchar(100), @lname nvarchar(100), 
+	@email nvarchar(200), @phone_number nvarchar(20), @department_name nvarchar(100), @FOPAL nvarchar(100)
 AS
+
+IF @uid IS NULL or @uid < 1
 BEGIN
-	-- SET NOCOUNT ON added to prevent extra result sets from
-	-- interfering with SELECT statements.
-	SET NOCOUNT ON;
+	RAISERROR('Invalid user ID input', 14, 1)
+	RETURN
+END
 
-	if @id IS NULL
+IF NOT EXISTS (SELECT * FROM "User" WHERE id = @uid)
+BEGIN
+	RAISERROR('No user with the provided userID', 14, 1)
+	RETURN
+END
+
+IF EXISTS (SELECT * FROM Department WHERE uid = @uid AND name = @department_name)
+BEGIN
+	UPDATE Department
+	SET FOPAL = @FOPAL
+	WHERE uid = @uid AND name = @department_name
+END
+
+BEGIN
 	BEGIN
-		RAISERROR('Id cannot be null', 14, 1)
-		RETURN
+		DECLARE @d_did int
+		SELECT @d_did = id
+		FROM Department
+		WHERE uid = @uid AND name = @department_name AND FOPAL = @FOPAL
+
+		UPDATE "User"
+		SET cid = @cid, first = @fname, last = @lname,
+		email = @email, phone_number = @phone_number, 
+		default_did = @d_did
+		WHERE id = @uid
 	END
-
-
-	if Not EXISTS (
-		SELECT id from [dbo].[Users] where id = @id
-	)
-	BEGIN
-		RAISERROR('User does not exist', 14, 1)
-		RETURN
-	END
-
-	if @did IS NOT NULL
-	BEGIN
-		IF NOT EXISTS (
-			SELECT id from [dbo].[Departments] where id = @did and uid = @id
-		)
-		BEGIN
-			RAISERROR('Department does not exist or does not belong to the user', 14, 1)
-			RETURN
-		END
-	END
-	
-
-
-    -- Insert statements for procedure here
-	update Users
-	-- COALESCE will be used to pick the new value if provided, otherwise it will keep the existing value
-	set first = COALESCE(@first, first), 
-		last = COALESCE(@last, last), 
-		phone = COALESCE(@phone, phone), 
-		default_did = COALESCE(@did, default_did)
-	where id = @id
-	
-	-- Return the result
-	SELECT id, cid, first, last, email, phone, default_did
-  	FROM dbo.Users
-  	WHERE id = @id;
 END

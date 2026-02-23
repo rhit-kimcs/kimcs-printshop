@@ -125,18 +125,6 @@ export function UserPage() {
       userQuery.error?.message?.includes("CONNECTION_REFUSED") ||
       userQuery.error?.message?.toLowerCase().includes("connection"));
 
-  // const [formData, setFormData] = useState<
-  //   Partial<UserDTO> & { department?: string; FOPAL?: string }
-  // >({
-  //   first: "",
-  //   last: "",
-  //   email: "",
-  //   phone: "",
-  //   default_did: 0,
-  //   department: "",
-  //   FOPAL: "",
-  // });
-
   const form = useForm({
     defaultValues: {
       first: "",
@@ -151,16 +139,20 @@ export function UserPage() {
       onSubmit: formSchema,
     },
     onSubmit: async ({ value }) => {
-      await useUpdateUserProfile.mutateAsync({
+      const updated = await useUpdateUser.mutateAsync({
         id: uid,
         data: value,
+      });
+      await userQuery.refetch();
+      lastSyncedUserIdRef.current = null;
+      form.reset({
+        ...updated,
+        department: updated.department ?? "",
+        FOPAL: updated.FOPAL ?? "",
       });
     },
   });
 
-  // Sync form from server only once per user (or when user id changes). Do not
-  // run while the Add Department dialog is open so we never clear the form when
-  // the user opens the dialog.
   const lastSyncedUserIdRef = useRef<number | null>(null);
   useEffect(() => {
     if (addDeptOpen) return;
@@ -179,17 +171,6 @@ export function UserPage() {
     });
   }, [userQuery.data, addDeptOpen]);
 
-  // useEffect(() => {
-  //   if (!departmentQuery.data) return;
-  //   console.log("updating department value:", departmentQuery.data);
-  //   console.log(form.state.values);
-  //   form.setFieldValue("department", departmentQuery.data.name ?? "");
-  //   form.setFieldValue("FOPAL", departmentQuery.data.FOPAL ?? "");
-  // }, [departmentQuery.isSuccess, departmentQuery.data, form]);
-
-  // Only show loading on initial load when we have no data yet. Once we have
-  // user data, keep showing the form even while refetching, so the form never
-  // unmounts and clears when e.g. the Add Department dialog is opened.
   if (userQuery.isLoading && !userQuery.data) {
     return (
       <div className="flex h-full flex-col justify-center items-center">

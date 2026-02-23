@@ -73,15 +73,31 @@ export class UserRouter {
   @Mutation({
     input: z.object({
       id: z.number(),
-      data: userSchema.partial(),
+      data: userSchema
+        .extend({
+          department: z.string().nullable(),
+          FOPAL: z.string().nullable(),
+        })
+        .partial(),
     }),
     output: userSchema,
   })
   async updateUser(
     @Input('id') id: number,
-    @Input('data') data: Partial<User>,
+    @Input('data') data: Partial<User> & { department?: string | null; FOPAL?: string | null },
   ) {
-    return await this.userService.updateUser(id, data);
+    await this.pool
+      .request()
+      .input('uid', mssql.Int, id)
+      .input('cid', mssql.NVarChar, data.cid ?? '')
+      .input('fname', mssql.NVarChar, data.first ?? '')
+      .input('lname', mssql.NVarChar, data.last ?? '')
+      .input('email', mssql.NVarChar, data.email ?? '')
+      .input('phone_number', mssql.NVarChar, data.phone ?? '')
+      .input('department_name', mssql.NVarChar, data.department ?? '')
+      .input('FOPAL', mssql.NVarChar, data.FOPAL ?? '')
+      .execute(`dbo.UpdateUser`);
+    return this.getUser(id);
   }
 
   @Mutation({

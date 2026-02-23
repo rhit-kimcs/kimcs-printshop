@@ -81,6 +81,9 @@ const appRouter = t.router({
         default_did: z.number().nullable(),
         department: z.string().nullable(),
         FOPAL: z.string().nullable(),
+      }).extend({
+        department: z.string().nullable(),
+        FOPAL: z.string().nullable(),
       }).partial(),
     })).output(z.object({
       id: z.number(),
