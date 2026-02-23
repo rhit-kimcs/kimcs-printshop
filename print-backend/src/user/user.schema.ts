@@ -12,6 +12,8 @@ export const userSchema = z.object({
     .max(15, 'Phone number must be at most 15 digits')
     .nullable(),
   default_did: z.number().nullable(),
+  department: z.string().nullable(),
+  FOPAL: z.string().nullable(),
 });
 
 export type User = z.infer<typeof userSchema>;

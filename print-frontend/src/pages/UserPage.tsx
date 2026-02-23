@@ -19,8 +19,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { z } from "zod";
 import { FormTextField } from "@/components/FormTextField";
-import { trpc } from "@/utils/trpc";
-import { useQuery } from "@tanstack/react-query";
 
 const formSchema = z.object({
   id: z.number(),
@@ -53,12 +51,8 @@ export function UserPage() {
   const { useGetUser, useUpdateUser, useUpdateUserProfile } = useUser();
 
   const userQuery = useGetUser(uid);
-  const departmentQuery = useQuery(
-    trpc.department.getDepartment.queryOptions(
-      { id: userQuery.data?.default_did || 0, uid },
-      { enabled: !!userQuery.data?.default_did },
-    ),
-  );
+
+
 
   // const [formData, setFormData] = useState<
   //   Partial<UserDTO> & { department?: string; FOPAL?: string }
@@ -86,20 +80,6 @@ export function UserPage() {
       onSubmit: formSchema,
     },
     onSubmit: async ({ value }) => {
-      // toast("You submitted the following values:", {
-      //   description: (
-      //     <pre className="bg-code text-code-foreground mt-2 w-[320px] overflow-x-auto rounded-md p-4">
-      //       <code>{JSON.stringify(value, null, 2)}</code>
-      //     </pre>
-      //   ),
-      //   position: "bottom-right",
-      //   classNames: {
-      //     content: "flex flex-col gap-2",
-      //   },
-      //   style: {
-      //     "--border-radius": "calc(var(--radius)  + 4px)",
-      //   } as React.CSSProperties,
-      // });
       await useUpdateUserProfile.mutateAsync({
         id: uid,
         data: value,
@@ -110,20 +90,16 @@ export function UserPage() {
   useEffect(() => {
     if (!userQuery.data) return;
     console.log("Updating user info,", userQuery.data);
+    const data = userQuery.data as typeof userQuery.data & {
+      department?: string | null;
+      FOPAL?: string | null;
+    };
     form.reset({
-      ...userQuery.data,
-      department: departmentQuery.isSuccess
-        ? departmentQuery.data?.name || ""
-        : "",
-      FOPAL: departmentQuery.isSuccess ? departmentQuery.data?.FOPAL || "" : "",
+      ...data,
+      department: data.department ?? "",
+      FOPAL: data.FOPAL ?? "",
     });
-  }, [
-    departmentQuery.isSuccess,
-    departmentQuery.data,
-    userQuery.isSuccess,
-    userQuery.data,
-    form,
-  ]);
+  }, [userQuery.isSuccess, userQuery.data, form]);
 
   // useEffect(() => {
   //   if (!departmentQuery.data) return;
@@ -133,11 +109,13 @@ export function UserPage() {
   //   form.setFieldValue("FOPAL", departmentQuery.data.FOPAL ?? "");
   // }, [departmentQuery.isSuccess, departmentQuery.data, form]);
 
+  
+
   return (
     <div className="flex h-full flex-col justify-center items-center">
       <Card className="w-full max-w-md gap-2">
         <CardHeader>
-          <CardTitle className="text-xl">Update User Info</CardTitle>
+          <CardTitle className="text-xl">User Info</CardTitle>
         </CardHeader>
         <CardContent>
           <form
@@ -178,7 +156,6 @@ export function UserPage() {
                     label="Email *"
                     placeholder="Enter your email"
                     className="gap-1"
-                    disabled={true}
                   />
                 )}
               />

@@ -5,6 +5,7 @@ import { userSchema } from './user.schema';
 import type { User } from './user.schema';
 import { Inject } from '@nestjs/common';
 import mssql from 'mssql';
+import { TRPCError } from '@trpc/server';
 import { DATABASE_POOL } from '../db/db.provider';
 
 @Router({ alias: 'user' })
@@ -20,13 +21,35 @@ export class UserRouter {
     output: userSchema,
   })
   async getUser(@Input('id') id: number) {
+    console.log('Getting user with id:', id);
+    if (!this.pool) {
+      throw new Error(
+        'Database pool is not injected. Ensure DatabaseModule is imported by UserModule and that the pool provider is available.',
+      );
+    }
     const result = await this.pool
       .request()
-      .input('id', mssql.Int, id)
+      .input('inputID', mssql.Int, id)
       .execute(`dbo.GetUser`);
 
+    console.log("SP result:", result);
     console.log('Update result:', result.recordset);
-    return result.recordset[0] as User;
+    const row = result.recordset[0] as Record<string, unknown>;
+    if (!row) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' });
+    }
+    const user: User = {
+      id: Number(row.id),
+      cid: String(row.cid ?? ''),
+      first: String(row.first ?? ''),
+      last: String(row.last ?? ''),
+      email: String(row.email ?? ''),
+      phone: row.phone_number != null ? String(row.phone_number) : (row.phone != null ? String(row.phone) : null),
+      default_did: row.default_did != null ? Number(row.default_did) : null,
+      department: row.name != null ? String(row.name) : (row.department != null ? String(row.department) : null),
+      FOPAL: row.FOPAL != null ? String(row.FOPAL) : null,
+    };
+    return user;
   }
 
   @Query({

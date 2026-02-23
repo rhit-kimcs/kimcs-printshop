@@ -18,6 +18,8 @@ const appRouter = t.router({
         .max(15, 'Phone number must be at most 15 digits')
         .nullable(),
       default_did: z.number().nullable(),
+      department: z.string().nullable(),
+      FOPAL: z.string().nullable(),
     })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     getAllUsers: publicProcedure.output(z.array(z.object({
       id: z.number(),
@@ -31,6 +33,8 @@ const appRouter = t.router({
         .max(15, 'Phone number must be at most 15 digits')
         .nullable(),
       default_did: z.number().nullable(),
+      department: z.string().nullable(),
+      FOPAL: z.string().nullable(),
     }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     createUser: publicProcedure.input(z.object({
       id: z.number(),
@@ -44,6 +48,8 @@ const appRouter = t.router({
         .max(15, 'Phone number must be at most 15 digits')
         .nullable(),
       default_did: z.number().nullable(),
+      department: z.string().nullable(),
+      FOPAL: z.string().nullable(),
     })).output(z.object({
       id: z.number(),
       cid: z.string(),
@@ -56,6 +62,8 @@ const appRouter = t.router({
         .max(15, 'Phone number must be at most 15 digits')
         .nullable(),
       default_did: z.number().nullable(),
+      department: z.string().nullable(),
+      FOPAL: z.string().nullable(),
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     updateUser: publicProcedure.input(z.object({
       id: z.number(),
@@ -71,6 +79,8 @@ const appRouter = t.router({
           .max(15, 'Phone number must be at most 15 digits')
           .nullable(),
         default_did: z.number().nullable(),
+        department: z.string().nullable(),
+        FOPAL: z.string().nullable(),
       }).partial(),
     })).output(z.object({
       id: z.number(),
@@ -84,6 +94,8 @@ const appRouter = t.router({
         .max(15, 'Phone number must be at most 15 digits')
         .nullable(),
       default_did: z.number().nullable(),
+      department: z.string().nullable(),
+      FOPAL: z.string().nullable(),
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     updateUserProfile: publicProcedure.input(z.object({
       id: z.number(),
@@ -99,6 +111,8 @@ const appRouter = t.router({
           .max(15, 'Phone number must be at most 15 digits')
           .nullable(),
         default_did: z.number().nullable(),
+        department: z.string().nullable(),
+        FOPAL: z.string().nullable(),
       }).extend({
         department: z.string().nullable(),
         FOPAL: z.string().nullable(),
@@ -115,6 +129,8 @@ const appRouter = t.router({
         .max(15, 'Phone number must be at most 15 digits')
         .nullable(),
       default_did: z.number().nullable(),
+      department: z.string().nullable(),
+      FOPAL: z.string().nullable(),
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     deleteUser: publicProcedure.input(z.object({
       id: z.number(),

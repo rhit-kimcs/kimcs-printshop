@@ -26,6 +26,7 @@ export const databaseProviders: Provider[] = [
       try {
         await pool.connect();
         console.log('Connected to the database successfully.');
+        console.log('Database config:', dbConfig);
       } catch (error) {
         console.error('Database connection failed:', error);
         throw error;
